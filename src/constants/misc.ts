@@ -1,0 +1,1 @@
+export const CURRENCIES = {'KRW': '원', 'USD': '$'};
