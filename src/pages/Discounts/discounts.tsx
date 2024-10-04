@@ -8,8 +8,8 @@ import { CURRENCIES } from '../../constants/misc'
 import { CheckedItemsProps } from '../../App'
 import { useDispatch, useSelector } from 'react-redux'
 import { setWishList } from '../../state/wishlist/reducer'
-import { useStylesList } from '../../hooks/useStylesList'
 import { RootState } from '../../state/index'
+import { useDiscountsList } from '../../hooks/useDiscountsList'
 
 const buttonStyles = {
   backgroundColor: '#f0f0f0',
@@ -18,16 +18,15 @@ const buttonStyles = {
   width: '100%',
 }
 
-const Styles = () => {
+const Discounts = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-
   
   const handleNavigate = useCallback(() => {
     navigate('/')
   }, [])
 
-  const { result: stylesList, isLoading, error } = useStylesList()
+  const { result: discountsList, isLoading, error } = useDiscountsList()
 
   // const [isAlreadyExist, setIsAlreadyExist] = useState(false)
 
@@ -35,23 +34,23 @@ const Styles = () => {
   console.log("WISHLIST IN STYLES PAGE", wishList)
 
   const dispatchWishList = useCallback((indexes: number[]) => {
-    console.log("STYLES LISTTTTTT", stylesList)
-    const selectedItems = indexes.map((index: number) => stylesList[index])
+    console.log("STYLES LISTTTTTT", discountsList)
+    const selectedItems = indexes.map((index: number) => discountsList[index])
     console.log("SEL ITESM", selectedItems)
     dispatch(setWishList(selectedItems))
-  }, [stylesList])
+  }, [discountsList])
 
   const [checkedItemsIndexes, setCheckedItemsIndexes] = useState<number[]>([])
 
   useEffect(() => {
-    const initialCheckedIndexes = wishList.map(item => stylesList.findIndex(style => style.id === item.id))
+    const initialCheckedIndexes = wishList.map(item => discountsList.findIndex(style => style.id === item.id))
     console.log("INITIAL CHECKED INDEXES", initialCheckedIndexes)
     setCheckedItemsIndexes(initialCheckedIndexes)
-  }, [wishList, stylesList])
+  }, [wishList, discountsList])
   
 
   const handleClickItem = useCallback((index: number) => {
-    console.log("INDEX? ", stylesList[index])
+    console.log("INDEX? ", discountsList[index])
 
     console.log("INDEX@@@@", index)
     console.log("WISH LSIT@@@@@@", wishList)
@@ -69,7 +68,7 @@ const Styles = () => {
         return [...prevCheckedItems, index]
       }
     })
-  }, [stylesList])
+  }, [discountsList])
 
   // const checkedItems: any[] = useMemo(() => {
   //   if (!stylesList || stylesList.length === 0) return []
@@ -77,7 +76,7 @@ const Styles = () => {
   // }, [stylesList])
 
   console.log("CHECKED ITEMS", checkedItemsIndexes)
-  console.log("STYLES LIST", stylesList)
+  console.log("STYLES LIST", discountsList)
 
   const Row = ({ index, style }: ListChildComponentProps) => (
     <div style={{ ...style, padding: '10px 0' }}>
@@ -85,10 +84,10 @@ const Styles = () => {
         <Checkbox checked={checkedItemsIndexes.includes(index)} />
         <Box display="flex" flexDirection="column" ml={1}>
           <Typography variant="h6">
-            {stylesList[index].name}
+            {discountsList[index].name}
           </Typography>
           <Typography variant="h6">
-            {stylesList[index].priceToDisplay}
+            {discountsList[index].priceToDisplay}
           </Typography>
         </Box>
       </Box>
@@ -96,10 +95,10 @@ const Styles = () => {
   )
 
   const getItemSize = useCallback((index: number) => {
-    if (stylesList[index] === undefined) return 0
-    const item = stylesList[index]
+    if (discountsList[index] === undefined) return 0
+    const item = discountsList[index]
     return item.name.length > 20 ? 100 : 70
-  }, [stylesList])
+  }, [discountsList])
   
 
   if (isLoading) return <div>Loading...</div>
@@ -109,14 +108,14 @@ const Styles = () => {
     <Container sx={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <List
         height={700}
-        itemCount={stylesList.length}
+        itemCount={discountsList.length}
         itemSize={getItemSize}
         width={650}
       >
         {Row}
       </List>
       <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center">
-        <Typography variant="caption">서비스를 선택하세요(여러 개 선택 가능)</Typography>
+        <Typography variant="caption">할인을 선택하세요(여러 개 선택 가능)</Typography>
         <Button
             variant="contained"
             sx={{
@@ -140,4 +139,4 @@ const Styles = () => {
   )
 }
 
-export default Styles
+export default Discounts
