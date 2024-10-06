@@ -200,7 +200,7 @@ const WishList = () => {
         <AutoSizer>
           {({ height, width }: { height: number; width: number }) => (
             <List 
-              height={height}
+              height={700}
               itemCount={wishList?.length}
               itemSize={getItemSize}
               itemData={wishList}
