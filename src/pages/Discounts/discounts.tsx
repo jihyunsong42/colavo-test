@@ -17,7 +17,7 @@ const Styles = () => {
     navigate('/')
   }, [])
 
-  const { result: discountsList, isLoading, error } = useDiscountsList()
+  const { result: discountsList, isLoading, error } = useDiscountsList() // 할인 리스트 가져오기
 
   const wishList = useSelector((state: RootState) => state.wishList.items)
   const discountsWishList = wishList.filter((item: WishListItem) => item.type === 'discount')
@@ -25,7 +25,7 @@ const Styles = () => {
   
   const [checkedIds, setCheckedIds] = useState<string[]>([])
 
-  const dispatchWishList = useCallback((ids: string[]) => {
+  const dispatchWishList = useCallback((ids: string[]) => { // 다음 버튼 클릭시 redux에 wishList 저장
     const addedItems = ids
     .map((id: string) => discountsList.find((style: any) => style.id === id))
     .filter((item: any) => !discountsWishList.some(wishItem => wishItem.id === item.id))
@@ -43,14 +43,12 @@ const Styles = () => {
 
   }, [discountsList, wishList, checkedIds])
 
-
-
-  useEffect(() => {
+  useEffect(() => { // checkedIds 초기화
     const initialCheckedIds = discountsWishList.map(item => item.id)
     setCheckedIds(initialCheckedIds)
   }, [wishList, discountsList])
 
-  const handleClickItem = useCallback((data: any) => {
+  const handleClickItem = useCallback((data: any) => { // 아이템 클릭시 checkedIds 업데이트
     setCheckedIds(prevCheckedIds => {
       if (prevCheckedIds.includes(data.id)) {
         return prevCheckedIds.filter((id) => id !== data.id)
@@ -81,7 +79,7 @@ const Styles = () => {
     )
   }
 
-  const getItemSize = useCallback((index: number) => {
+  const getItemSize = useCallback((index: number) => {  // 아이템 높이
     if (discountsList[index] === undefined) return 0
     const item = discountsList[index]
     return item.name.length > 20 ? 100 : 70

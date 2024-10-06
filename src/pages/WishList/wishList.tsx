@@ -7,6 +7,7 @@ import { RootState } from '../../state/index'
 import CloseIcon from '@mui/icons-material/Close';
 import { setWishList, WishListItem } from '../../state/wishlist/reducer'
 import { formatCurrency } from '../../utils/currencies'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 const buttonStyles = {
   backgroundColor: '#f0f0f0',
@@ -19,6 +20,10 @@ const WishList = () => {
 
   const wishList = useSelector((state: RootState) => state.wishList.items)
   const stylesWishList = wishList.filter((item: WishListItem) => item.type === 'style')
+
+  const getItemSize = useCallback((index: number) => {
+    return 70
+  }, [])
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -52,19 +57,21 @@ const WishList = () => {
   }, [dispatch, stylesWishList, discountsWishList])
 
   const handleNavigate = useCallback((index: number) => {
-    index === 0 ? navigate('/styles') :
-    index === 1 ? navigate('/discounts') :
-    navigate('/')
+    index === 0 
+    ? navigate('/styles')
+    : index === 1
+    ? navigate('/discounts')
+    : navigate('/')
   }, [])
 
-  const handleCountChange = useCallback((e: any, index: number) => {
+  const handleCountChange = useCallback((e: any, index: number) => { // 아이템 갯수 변경
     const newWishList = wishList.map((item: WishListItem, i: number) => 
       i === index ? { ...item, count: e.target.value } : item
     )
     dispatch(setWishList(newWishList))
   }, [wishList])
 
-  const handleDiscountTargetChange = useCallback((e: any, index: number) => {
+  const handleDiscountTargetChange = useCallback((e: any, index: number) => { // 할인 대상 변경
     const newWishList = wishList.map((item: WishListItem, i: number) => {
       return i === index ? { ...item, target: e.target.value } : item
     })
@@ -72,34 +79,24 @@ const WishList = () => {
   }, [wishList])
 
 
-  const handleDeleteItem = useCallback((index: number) => {
+  const handleDeleteItem = useCallback((index: number) => { // 아이템 삭제
     const newWishList = wishList.filter((item: WishListItem, i: number) => i !== index)
     dispatch(setWishList(newWishList))
   }, [wishList])
-
-  const getItemSize = useCallback((index: number) => {
-    if (wishList[index] === undefined) return 0
-    const item = wishList[index]
-    console.log("ITEMEEE", item)
-    const targetName = wishList.find((wishListItem: WishListItem) => wishListItem.target === item.id)
-    console.log("TARGETNAME:", targetName?.name)
-    return item.name.length > 20 ? 100 : 70
-  }, [wishList])
-
   
   const countSize = 99
 
   const counts = Array.from({ length: countSize }, (_, index) => index + 1)
 
-  const targets = [
-    { label: '선택 안함(전체)', value: 'none' },
+  const targets = useMemo(() => { // 할인 대상 목록
+    return [{ label: '선택 안함(전체)', value: 'none' },
     ...stylesWishList.map((item: WishListItem) => ({
       label: `${item.name} X ${item.count}`,
       value: item.id
-    }))
-  ]
+    }))]
+  }, [stylesWishList])
 
-  const Row = ({ data, index, style }: ListChildComponentProps) => {
+  const Row = ({ data, index, style }: ListChildComponentProps) => { 
     const item = data[index]
     return (
     <div style={{ ...style, padding: '10px 0' }}>
@@ -200,15 +197,19 @@ const WishList = () => {
         </Box>
       </Box>
       <Box sx={{ flex: 1, mt: '150px'}}>
-        <List 
-          height={700}
-          itemCount={wishList?.length}
-          itemSize={getItemSize}
-          itemData={wishList}
-          width={650}
-        >
-          {Row}
-        </List>
+        <AutoSizer>
+          {({ height, width }: { height: number; width: number }) => (
+            <List 
+              height={height}
+              itemCount={wishList?.length}
+              itemSize={getItemSize}
+              itemData={wishList}
+              width={width}
+            >
+              {Row}
+            </List>
+          )}
+        </AutoSizer>
       </Box>
       <Box
         sx={{
@@ -222,7 +223,7 @@ const WishList = () => {
         }}
       >
         <Typography>
-          합계 {
+          합계: {
             wishList.length > 0
             ? formatCurrency(
               wishList.reduce((acc, item) => {
@@ -233,7 +234,7 @@ const WishList = () => {
               }, 0)
               , wishList[0].currencyCode
             )
-            : 0
+            : '-'
           }
         </Typography>
           <Button 

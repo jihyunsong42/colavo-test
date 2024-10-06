@@ -7,7 +7,7 @@ interface StylesListResult {
   error: Error | null
 }
 
-export const useStylesList = () => {
+export const useStylesList = () => { // 시술 리스트 커스텀 훅
   const { result: data, error, isLoading } = useList()
 
   return useMemo<StylesListResult>(() => {

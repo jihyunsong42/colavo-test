@@ -25,8 +25,7 @@ const Styles = () => {
 
   const [checkedIds, setCheckedIds] = useState<string[]>([])
 
-  const dispatchWishList = useCallback((ids: string[]) => {
-
+  const dispatchWishList = useCallback((ids: string[]) => { // 다음 버튼 클릭시 redux에 wishList 저장
     const addedItems = ids
     .map((id: string) => stylesList.find((style: any) => style.id === id))
     .filter((item: any) => !stylesWishList.some(wishItem => wishItem.id === item.id))
@@ -43,14 +42,12 @@ const Styles = () => {
 
   }, [stylesList, wishList, checkedIds])
 
-
-
-  useEffect(() => {
+  useEffect(() => { // checkedIds 초기화
     const initialCheckedIds = stylesWishList.map(item => item.id)
     setCheckedIds(initialCheckedIds)
   }, [wishList, stylesList])
 
-  const handleClickItem = useCallback((data: any) => {
+  const handleClickItem = useCallback((data: any) => { // 아이템 클릭시 checkedIds 업데이트
     setCheckedIds(prevCheckedIds => {
       if (prevCheckedIds.includes(data.id)) {
         return prevCheckedIds.filter((id) => id !== data.id)
@@ -81,15 +78,15 @@ const Styles = () => {
     )
   }
 
-  const getItemSize = useCallback((index: number) => {
+  const getItemSize = useCallback((index: number) => { // 아이템 높이
     if (stylesList[index] === undefined) return 0
     const item = stylesList[index]
     return item.name.length > 20 ? 100 : 70
   }, [stylesList])
   
 
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div>Error</div>
+  if (isLoading) return <h2>Loading...</h2>
+  if (error) return <h2>Error fetching data</h2>
 
   return (
     <Container sx={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
