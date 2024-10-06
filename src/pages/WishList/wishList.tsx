@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../state/index'
 import CloseIcon from '@mui/icons-material/Close';
 import { setWishList, WishListItem } from '../../state/wishlist/reducer'
-import { formatCurrency } from '../../utils/currencies'
+import { formatCurrency } from '../../utils/formatCurrency'
 import AutoSizer from 'react-virtualized-auto-sizer'
 
 const buttonStyles = {

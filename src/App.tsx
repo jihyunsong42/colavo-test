@@ -15,9 +15,9 @@ function App() {
   return (
     <Router>
       <Routes>
-      <Route path="/" element={<WishList />} />
-      <Route path="/styles" element={<Styles />} />
-      <Route path="/discounts" element={<Discounts />} />
+        <Route path="/" element={<WishList />} />
+        <Route path="/styles" element={<Styles />} />
+        <Route path="/discounts" element={<Discounts />} />
       </Routes>
     </Router>
   )

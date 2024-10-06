@@ -26,6 +26,5 @@ export const useList = () => { // 데이터 페칭 커스텀 훅
     return { result: data, isLoading, error}
 
   }, [data, isLoading, error])
-
 }
 

@@ -7,7 +7,7 @@ import { setWishList } from '../../state/wishlist/reducer'
 import { useStylesList } from '../../hooks/useStylesList'
 import { RootState } from '../../state/index'
 import { WishListItem } from '../../state/wishlist/reducer'
-import { formatCurrency } from '../../utils/currencies'
+import { formatCurrency } from '../../utils/formatCurrency'
 
 const Styles = () => {
   const navigate = useNavigate()
