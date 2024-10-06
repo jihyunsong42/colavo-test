@@ -8,7 +8,6 @@ import { RootState } from '../../state/index'
 import { WishListItem } from '../../state/wishlist/reducer'
 import { useDiscountsList } from '../../hooks/useDiscountsList'
 
-
 const Styles = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -86,8 +85,8 @@ const Styles = () => {
   }, [discountsList])
   
 
-  if (isLoading) return <div>Loading...</div>
-  if (error) return <div>Error</div>
+  if (isLoading) return <h2>Loading...</h2>
+  if (error) return <h2>Error fetching data</h2>
 
   return (
     <Container sx={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
