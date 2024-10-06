@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Container, Box, Typography, Button, Select, MenuItem, IconButton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { CheckedItemsProps } from '../../App'
 import { VariableSizeList as List, ListChildComponentProps } from 'react-window'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../state/index'
 import CloseIcon from '@mui/icons-material/Close';
-import { setWishList } from '../../state/wishlist/reducer'
+import { setWishList, WishListItem } from '../../state/wishlist/reducer'
+import { formatCurrency } from '../../utils/currencies'
 
 const buttonStyles = {
   backgroundColor: '#f0f0f0',
@@ -18,68 +18,89 @@ const buttonStyles = {
 const WishList = () => {
 
   const wishList = useSelector((state: RootState) => state.wishList.items)
+  const stylesWishList = wishList.filter((item: WishListItem) => item.type === 'style')
+
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  
+
+  const discountsWishList = useMemo(() => {
+    const discountsList = wishList.filter((item: WishListItem) => item.type === 'discount')
+    const updatedDiscountsList = discountsList.map((discountItem: WishListItem) => {
+      const rate = discountItem.rate ?? 0
+      if (discountItem.target === 'none' || discountItem.target === undefined) {
+        return { 
+          ...discountItem, 
+          discountedPrice: stylesWishList.reduce((acc, styleItem) => 
+            acc + 
+          (Math.round(styleItem.price && styleItem.count ? styleItem.price * styleItem.count * rate : 0)), 0)
+        }
+      } else {
+        const targetItem = stylesWishList.find((styleItem) => styleItem.id === discountItem.target)
+        return {
+          ...discountItem,
+          discountedPrice: targetItem?.price && targetItem.count ? Math.round(targetItem.price * targetItem.count * rate) : 0
+        }
+      }
+    })
+    return updatedDiscountsList
+  }, [wishList, stylesWishList])
+
+  useEffect(() => {
+    const updatedWishList = stylesWishList.concat(discountsWishList)
+    if (JSON.stringify(updatedWishList) !== JSON.stringify(wishList)) 
+      dispatch(setWishList(updatedWishList))
+  }, [dispatch, stylesWishList, discountsWishList])
+
   const handleNavigate = useCallback((index: number) => {
     index === 0 ? navigate('/styles') :
     index === 1 ? navigate('/discounts') :
     navigate('/')
-    // navigate('/styles')
   }, [])
-
-  const [selectedCounts, setSelectedCounts] = useState(wishList.map((item) => item.count))
 
   const handleCountChange = useCallback((e: any, index: number) => {
-    console.log("E TAR VAL", e.target.value)
-    console.log("INDEX", index)
-    // setSelectedCounts(e.target.value)
-    setSelectedCounts((prev) => {
-      console.log("PREV", prev)
-      const newCounts = [...prev]
-      newCounts[index] = e.target.value
-      return newCounts
+    const newWishList = wishList.map((item: WishListItem, i: number) => 
+      i === index ? { ...item, count: e.target.value } : item
+    )
+    dispatch(setWishList(newWishList))
+  }, [wishList])
+
+  const handleDiscountTargetChange = useCallback((e: any, index: number) => {
+    const newWishList = wishList.map((item: WishListItem, i: number) => {
+      return i === index ? { ...item, target: e.target.value } : item
     })
-  }, [])
+    dispatch(setWishList(newWishList))
+  }, [wishList])
+
 
   const handleDeleteItem = useCallback((index: number) => {
-    console.log("ITEM INDEXD TO DELETE", index)
-    console.log("WISHLIST", wishList)
-    const newWishList = wishList.filter((item, i) => i !== index)
-    console.log("NEEW  WIISH LIST", newWishList)
+    const newWishList = wishList.filter((item: WishListItem, i: number) => i !== index)
     dispatch(setWishList(newWishList))
-    setSelectedCounts((prev) => {
-      const newCounts = prev.filter((count, i) => i !== index)
-      return newCounts
-    })
-  }, [])
-  
-  useEffect(() => {
-    const res = wishList.map((item) => item.count)
-    console.log("RES", res)
-    // setSelectedCounts()
   }, [wishList])
-  // const selectedCounts = useMemo(() => {
-  //   return wishList.map((item) => item.count)
-  //   // return selectedCounts
-  // }, [wishList])
-
-  console.log("SELECTED COUTNS", selectedCounts)
 
   const getItemSize = useCallback((index: number) => {
-    console.log("CHECKED ITEM###S", wishList[index])
     if (wishList[index] === undefined) return 0
     const item = wishList[index]
-    return 70
+    console.log("ITEMEEE", item)
+    const targetName = wishList.find((wishListItem: WishListItem) => wishListItem.target === item.id)
+    console.log("TARGETNAME:", targetName?.name)
+    return item.name.length > 20 ? 100 : 70
   }, [wishList])
 
+  
   const countSize = 99
 
   const counts = Array.from({ length: countSize }, (_, index) => index + 1)
-  
+
+  const targets = [
+    { label: '선택 안함(전체)', value: 'none' },
+    ...stylesWishList.map((item: WishListItem) => ({
+      label: `${item.name} X ${item.count}`,
+      value: item.id
+    }))
+  ]
+
   const Row = ({ data, index, style }: ListChildComponentProps) => {
     const item = data[index]
-    console.log("ROW INDEX", index)
     return (
     <div style={{ ...style, padding: '10px 0' }}>
       <Box display="flex" alignItems="center" sx={{ userSelect: 'none', cursor: 'pointer' }}>
@@ -87,20 +108,44 @@ const WishList = () => {
           <Typography
             variant="h6"
           >
-            {item.name}
+            {item.name + (item.type === 'discount' ? ` (${Math.round(item.rate * 100)}%)` : '')}
           </Typography>
           <Typography
             variant="h6"
           >
-            {item.priceToDisplay}
+          {item.type === 'style' 
+            ? formatCurrency((item.price * item.count), item.currencyCode) 
+            : `-${item.discountedPrice !== undefined ? formatCurrency(item.discountedPrice, item.currencyCode) : 0}`
+          }
           </Typography>
         </Box>
-        <Select
-          value={selectedCounts[index]}
-          onChange={(e: any) => handleCountChange(e, index)}
-          displayEmpty
+        {item.type === 'style' && (
+          <Select
+            value={item?.count}
+            onChange={(e: any) => handleCountChange(e, index)}
+            inputProps={{ 'aria-label': 'Without label' }}
+            sx={{ minWidth: '70px', height: '40px', ml: 2 }}
+            MenuProps={{
+              PaperProps: {
+                style: {
+                  maxHeight: 300,
+                }
+              }
+            }}
+          >
+          {counts.map((count) => (
+            <MenuItem key={count} value={count}>
+              {count}
+            </MenuItem>
+          ))}
+          </Select>
+        )}
+        {item.type === 'discount' && (
+          <Select
+          value={item?.target ?? 'none'}
+          onChange={(e: any) => handleDiscountTargetChange(e, index)}
           inputProps={{ 'aria-label': 'Without label' }}
-          sx={{ minWidth: '70px', height: '40px', ml: 2 }}
+          sx={{ minWidth: '140px', height: '40px', ml: 2 }}
           MenuProps={{
             PaperProps: {
               style: {
@@ -109,17 +154,13 @@ const WishList = () => {
             }
           }}
         >
-          {counts.map((count) => (
-            <MenuItem key={count} value={count}>
-              {count}
+          {targets.map((target) => (
+            <MenuItem key={target.value} value={target.value}>
+              {target.label}
             </MenuItem>
           ))}
-          {/* <MenuItem value="">
-            <em>None</em>
-          </MenuItem>
-          <MenuItem value={10}>10</MenuItem> */}
         </Select>
-
+        )}
         <IconButton onClick={() => handleDeleteItem(index)} aria-label="close">
           <CloseIcon />
         </IconButton>
@@ -127,10 +168,6 @@ const WishList = () => {
     </div>
     )
   }
-
-  const totalPrice = useMemo(() => {
-    return wishList.reduce((acc, item, index) => acc + (item.price * selectedCounts[index]), 0)
-  }, [wishList, selectedCounts])
 
   return (
     <Container sx={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -185,7 +222,19 @@ const WishList = () => {
         }}
       >
         <Typography>
-          합계 {totalPrice}원
+          합계 {
+            wishList.length > 0
+            ? formatCurrency(
+              wishList.reduce((acc, item) => {
+                return acc + (item.price ?? 0) * (item.count ?? 0)
+              }, 0)
+              - wishList.reduce((acc, item) => {
+                return acc + (item.discountedPrice ?? 0)
+              }, 0)
+              , wishList[0].currencyCode
+            )
+            : 0
+          }
         </Typography>
           <Button 
             variant="contained"
